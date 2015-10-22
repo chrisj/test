@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html style="background-color: rgb(17,29,38);">
+<head>
+	<title></title>
+	<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+<video id = 'video' style="position: relative; display: none;" src="./assets/animations/melt-forward.mp4"></video>
+<canvas id="canvas" width="100%" height="100%" style="background-color: red;"></canvas>
+</body>
+<script type="text/javascript">
+
+	var video = document.getElementById("video");
+
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext('2d');
+
+
+	function resize() {
+		video.height = window.innerHeight;
+		var videoWidth = 4000 / 2260 * window.innerHeight;
+		video.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
+
+
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+
+	resize();
+
+	// video.width = 800;
+
+	var frames = [];
+
+	var frame = 1;
+
+	// video.play();
+
+	// video.addEventListener('')
+
+	video.addEventListener('canplay', function() {
+		console.log('canplay');
+
+		video.play();
+		
+
+		function loop() {
+			context.drawImage(video, 0, 0, window.innerWidth, window.innerHeight);
+			requestAnimationFrame(loop);
+		}
+		requestAnimationFrame(loop);
+
+
+	}, false);
+
+
+	video.addEventListener('timeupdate', function() {
+		// console.log('seaked', frame, video.duration);
+
+		// var time = frame / 30;
+
+		// if (time <= video.duration) {
+			// context.drawImage(video, 0, 0, 800, 452);
+			// frames[frame] = context.getImageData(0, 0, 800, 452);
+
+			// frame++;
+			// video.currentTime = time;
+		// }
+	}, false);
+</script>
+</html>

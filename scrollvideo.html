@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html style="background-color: rgb(17,29,38);">
+<head>
+	<title></title>
+	<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+<video id = 'forwardVideo' style="position: relative;" src="./assets/animations/melt-forward.mp4"></video>
+<!-- <video id = 'backVideo' style="position: relative;" src="./assets/animations/melt-backward.mp4"></video> -->
+</body>
+<script type="text/javascript">
+
+	var forwardVideo = document.getElementById("forwardVideo");
+	var backVideo = {
+		removeEventListener: function () {},
+		load: function () {},
+
+	};//document.getElementById("backVideo");
+
+	var videoDuration = 570;
+	var frameRate = 30;
+
+	function resize() {
+		forwardVideo.height = window.innerHeight;
+		var videoWidth = 4000 / 2260 * window.innerHeight;
+		forwardVideo.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
+
+		// backVideo.height = window.innerHeight / 2;
+		// backVideo.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
+	}
+
+	resize();
+
+	forwardVideo.load();
+	backVideo.load();
+	backVideo.currentTime = videoDuration * frameRate;
+
+	// currentVideo.load();
+	// otherVideo.load();
+
+	window.onresize = resize;
+
+
+	var currentSection = 0;
+
+	// {
+		var sections = [
+			0,
+			131,
+			175,
+			215,
+			245,
+			270,
+			570
+		];
+
+		var forwardSections = sections.map((x) => x / frameRate);
+
+		var reverseSections = sections.map((x) => 570 - x).reverse();
+		reverseSections = reverseSections.map((x) => x / frameRate);
+	// }
+
+
+	console.log(forwardSections);
+	console.log(reverseSections);
+
+	// setCurrentVideo(backVideo);
+
+
+	function setCurrentVideo (video) {
+
+		if (video === this.currentVideo) {
+			return;
+		}
+
+		this.currentVideo = video;
+
+		var isForward = (video === forwardVideo);
+
+		var otherVideo = isForward ? backVideo : forwardVideo;
+
+		otherVideo.removeEventListener('play');
+		otherVideo.removeEventListener('pause');
+
+		var blah = isForward ? forwardSections : reverseSections;
+		var otherSections = isForward ? reverseSections : forwardSections;
+
+		// console.log('sections', blah);
+
+		// video.style.display = 'inherit';
+		// otherVideo.style.display = 'none';
+
+		// problem
+		// user scrolls again while the computer is still getting scroll events
+		// it should continue in that case. can we get a true scroll did start event?
+
+		
+
+		// console.log('myCurrentSection', myCurrentSection);
+
+		var pauseStart;
+
+		video.addEventListener('play', function () {
+			console.log('play', currentSection);
+			var myCurrentSection = isForward ? currentSection : sections.length - 1 - currentSection;
+
+			console.log('play', isForward, myCurrentSection);
+			
+
+			var start = performance.now();
+			var duration = (blah[myCurrentSection] - video.currentTime) * 1000;
+
+			// console.log('from/to', video.currentTime, blah[myCurrentSection]);
+
+			// console.log('duration', duration, video.currentTime);
+			setTimeout(function () {
+				video.pause();
+				pauseStart = performance.now();
+				// console.log(performance.now() - start);
+			}, duration);
+		});
+
+		video.addEventListener('pause', function () {
+			var myCurrentSection = isForward ? currentSection : sections.length - 1 - currentSection;
+
+			// console.log('pause', currentSection);
+			var targetFrame = blah[myCurrentSection];
+			var frame = Math.floor(video.currentTime * 30);
+
+
+			console.log('pause', targetFrame * 30 - frame, performance.now() - pauseStart);
+
+			// console.log('pause', frame, targetFrame);
+
+
+			if (!targetFrame) {
+				console.log('what?')
+			}
+
+			// video.currentTime = targetFrame;
+
+			// console.log('othervideo section', otherSections.length - 1 - currentSection);
+
+			var otherTargetFrame = otherSections[otherSections.length - 1 - myCurrentSection];
+
+			otherVideo.currentTime = otherTargetFrame; //(videoDuration - targetFrame) / 30;
+
+			// console.log('otherVideo.currentTime', otherVideo.currentTime);
+
+			// setTimeout(function () {
+				// console.log('hi');
+				tryingToPlay = false;
+				count = 0;
+
+				// console.log("currentSection", currentSection);
+				
+		});
+	}
+
+	// sections = sections.map((x) => x - 1); // test because it is overplaying
+
+
+
+	var tryingToPlay = false;
+
+	var GAP = 50;
+	var last = 0;
+
+	var count = 0;
+
+	window.addEventListener('wheel', function (e) {
+		var now = performance.now();
+
+		if (e.deltaY === 0) {
+			return;
+		}
+
+		if (!tryingToPlay && (now - last >= GAP || count > 40)) {
+			tryingToPlay = true;
+
+			if (e.deltaY > 0) {
+				currentSection++;
+				setCurrentVideo(forwardVideo);
+				forwardVideo.play();
+			} else {
+				currentSection--;
+				setCurrentVideo(backVideo);
+				backVideo.play();
+			}
+		}
+
+		count++;
+		last = now;
+	});
+
+	// function betterSetTimeout(foo, duration) {
+	// 	var start = performance.now();
+
+		// function loop() {
+		// 	// console.log(video.currentTime);
+		// 	requestAnimationFrame(loop);
+		// }
+		// requestAnimationFrame(loop);
+	// }
+
+
+	// var start = performance.now();
+	// betterSetTimeout(function () {
+	// 	console.log('better', performance.now() - start);
+	// }, 3000);
+
+	// setTimeout(function () {
+	// 	console.log('original', performance.now() - start);
+	// }, 3000);
+
+
+
+
+
+
+
+
+	// function updateVideoPostion() {
+	// 	if (video.currentTime > 2 * section) {
+	// 		section++;
+	// 		video.pause();
+	// 		console.log(video.currentTime);
+	// 	}
+	// 	requestAnimationFrame(updateVideoPostion);
+	// }
+	// requestAnimationFrame(updateVideoPostion);
+
+	// $(window).on('wheel', function(e){
+	//     console.log(e.deltaY);
+	// });
+</script>
+</html>

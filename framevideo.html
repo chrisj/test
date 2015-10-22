@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html style="background-color: rgb(17,29,38);">
+<head>
+	<title></title>
+	<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+<video id = 'forwardVideo' style="position: relative;" src="./assets/animations/melt-forward-smaller.mp4"></video>
+<!-- <video id = 'forwardVideo' style="position: relative;" src="./assets/animations/mask.mp4"></video> -->
+
+<!-- <video id = 'backVideo' style="position: relative;" src="./assets/animations/melt-backward-small.mp4"></video> -->
+<div id='hey'></div>
+</body>
+<script type="text/javascript">
+
+	var forwardVideo = document.getElementById("forwardVideo");
+	// var backVideo = document.getElementById("backVideo");
+
+	var videoDuration = 570;
+	var frameRate = 30;
+
+	function resize() {
+		forwardVideo.height = window.innerHeight;
+		var videoWidth = 4000 / 2260 * window.innerHeight;
+		forwardVideo.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
+
+		// backVideo.height = window.innerHeight / 2;
+		// backVideo.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
+	}
+
+	resize();
+
+	// forwardVideo.play();
+
+
+	// setInterval(function () {
+	// 	forwardVideo.currentTime = forwardVideo.currentTime + 0.1;
+	// }, 200);
+
+
+	forwardVideo.play();
+	setTimeout(function () {
+		forwardVideo.pause();
+	}, 1000);
+	
+
+	// forwardVideo.load();
+
+	var currentFrame = 1;
+
+	forwardVideo.addEventListener('pause', function () {
+		console.log('pause');
+
+		forwardVideo.addEventListener('seeked', function () {
+		console.log('timeupdate');
+
+			var realTime = currentFrame / 30;
+			var roundedTime = Math.round(realTime * 100) / 100;
+
+			forwardVideo.currentTime = roundedTime;
+			console.log('forwardVideo.currentTime', forwardVideo.currentTime);
+			currentFrame++;
+
+			if (currentFrame / 30 > forwardVideo.duration) {
+				currentFrame = 1;
+			}
+		// }, 0);
+		});
+
+		forwardVideo.currentTime = 0.0;
+	});
+
+	// forwardVideo.currentTime = 0.1;
+
+	// setTimeout(function () {
+	// 	forwardVideo.pause();
+
+	// 	setTimeout(function () {
+	// 		forwardVideo.currentTime = forwardVideo.currentTime + 1;
+
+
+	// 		setTimeout(function () {
+	// 			forwardVideo.currentTime = forwardVideo.currentTime + 1;
+
+
+	// 			setTimeout(function () {
+	// 				forwardVideo.currentTime = forwardVideo.currentTime + 1;
+	// 			}, 2000);
+
+	// 		}, 2000);
+
+	// 	}, 2000);
+	// }, 2000);
+
+
+</script>
+</html>
