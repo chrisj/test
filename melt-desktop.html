@@ -149,10 +149,12 @@
 
 				var currentDelta = Math.abs(e.deltaY);
 
-				console.log(currentDelta);
-
-				if (now - lastStart > GAP && lastDelta !== null && lastDelta < 10 && currentDelta > lastDelta) {
+				// yay magic numbers
+				if ((now - last > GAP) ||
+					(now - lastStart > GAP && lastDelta !== null && currentDelta > lastDelta * 3)) {
 					lastStart = now;
+
+				console.log(currentDelta / lastDelta);
 
 					scrollStart.callbacks.forEach(function (cb) {
 						cb(e.deltaY > 0);
