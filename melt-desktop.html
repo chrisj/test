@@ -149,6 +149,8 @@
 
 				var currentDelta = Math.abs(e.deltaY);
 
+				console.log(currentDelta);
+
 				if (now - lastStart > GAP && lastDelta !== null && lastDelta < 10 && currentDelta > lastDelta) {
 					lastStart = now;
 
