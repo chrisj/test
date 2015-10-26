@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html style="background-color: red;">
+<head>
+	<title></title>
+	<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+</body>
+
+<script type="text/javascript">
+
+	var SEQUENCE_COUNT = 6;
+
+	function resize(video) {
+		video.height = window.innerHeight;
+		var videoWidth = 4000 / 2260 * window.innerHeight;
+		video.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
+	}
+
+	var videoCache = {
+		true: [],
+		false: []
+	};
+
+	function loadVideo(forward, sequence) {
+		var cacheResult = videoCache[forward][sequence];
+
+		if (cacheResult) {
+			return cacheResult;
+		}
+
+		var fString = forward ? 'forward' : 'backward';
+
+		var seqEl = document.createElement('video');
+		var src = document.createElement('source');
+		src.src = "./assets/animations/Melt_Sequence/small/melt_" + fString + "_" + sequence + ".mp4";
+
+		seqEl.appendChild(src);
+
+		seqEl.style.position = 'absolute';
+		seqEl.style.display = 'none';
+
+		// if (videoCache[forward][sequence - 1]) {
+			// document.body.insertBefore(seqEl, videoCache[forward][sequence - 1]);
+		// } else {
+			document.body.appendChild(seqEl);
+		// }
+
+
+		resize(seqEl);
+
+		seqEl.seqNum = sequence;
+
+		videoCache[forward][sequence] = seqEl;
+
+		seqEl.addEventListener('loadeddata', function () {
+			console.log('loadeddata');
+			seqEl.currentTime = 0.0;
+		});
+
+		seqEl.addEventListener('seeked', function () {
+			console.log('seeked', forward, sequence);
+			// ended = false;
+
+			seqEl.setupAndReadyToGo = true;
+			seqEl.style.display = 'inherit';
+
+			setTimeout(function () {
+				var videos = videoCache[true].concat(videoCache[false]);
+
+				for (var i = 0; i < videos.length; i++) {
+					var video = videos[i];
+
+					if (video) {
+						if (video !== seqEl) {
+							video.style.display = 'none';
+						}
+					}
+				};
+
+				seqEl.play();
+			}, 10); // TODO, maybe increase this? there is still a slight glitch in safari after second playthrough
+				// TODO with safari, try to change the z-index before switching them
+		});
+
+
+		var ended = false;
+
+		seqEl.addEventListener('pause', function () {
+			ended = true;			
+		});
+
+		scrollStart(function (down) {
+			if (!ended) {
+				if (down === forward) {
+					seqEl.playbackRate *= 2;
+				}
+				return;
+			}
+
+			var diff = 0;
+
+			if (down) {
+				if (forward) {
+					diff = 1;
+				}
+			} else {
+				if (forward) {
+				} else {
+					diff = -1;
+				}
+			}
+
+			var nextIdx = sequence + diff;//.mod(SEQUENCE_COUNT);
+
+			console.log('switching from', forward, sequence, 'to', down, nextIdx);
+
+			if (nextIdx >= 0 && nextIdx < SEQUENCE_COUNT) {
+				ended = false; // prevents double triggers, ended really means just ended
+				// console.log('switching from', forward, sequence, 'to', down, nextIdx);
+
+				var next = loadVideo(down, nextIdx);
+				if (next.setupAndReadyToGo) {
+					next.currentTime = 0.0;
+					next.playbackRate = 1;
+				}
+			}
+		});
+
+		return seqEl;
+	}
+
+	Number.prototype.mod = function(n) {
+		return ((this%n)+n)%n;
+	}
+
+	function scrollStart(callback) {
+		if (!scrollStart.initialized) {
+			scrollStart.initialized = true;
+			scrollStart.callbacks = [];
+
+			var GAP = 200;
+			var last = 0;
+			var lastDelta = null;
+			var lastStart = 0;
+
+			window.addEventListener('wheel', function (e) {
+				var now = performance.now();
+
+				var currentDelta = Math.abs(e.deltaY);
+
+				if (now - lastStart > GAP && lastDelta !== null && lastDelta < 10 && currentDelta > lastDelta) {
+					lastStart = now;
+
+					scrollStart.callbacks.forEach(function (cb) {
+						cb(e.deltaY > 0);
+					});
+				}
+
+				lastDelta = currentDelta;
+				last = now;
+			});
+		}
+
+		scrollStart.callbacks.push(callback);
+	}
+
+
+	scrollStart(function (up) {
+		console.log('start!', up);
+	});
+
+	var vid = loadVideo(true, 0);
+
+</script>
+</html>
