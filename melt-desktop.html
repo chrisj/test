@@ -78,6 +78,8 @@
 					}
 				};
 
+				// ended = false;
+
 				seqEl.play();
 			}, 10); // TODO, maybe increase this? there is still a slight glitch in safari after second playthrough
 				// TODO with safari, try to change the z-index before switching them
@@ -91,13 +93,10 @@
 		}
 
 		seqEl.addEventListener('pause', function () {
-			// if (!pleaseEnd) {
-				console.log('sequence ended', forward, sequence)
+			if (seqEl.currentTime === seqEl.duration) {
+				console.log('sequence ended', forward, sequence);
 				ended = true;
-				// pleaseEnd = false;
-			// } else {
-				// console.log('ignoring pause');
-			// }
+			}
 		});
 
 		// var pleaseEnd = false;
@@ -105,6 +104,7 @@
 
 		seqEl.scrollHandler = function (down) {
 			if (!ended) {
+				console.log('not ended', down, forward);
 				if (down === forward) {
 					console.log('double playback', forward, sequence);
 					seqEl.playbackRate *= 2;
