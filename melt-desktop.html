@@ -9,7 +9,7 @@
 
 <script type="text/javascript">
 
-	var SEQUENCE_COUNT = 6;
+	var SEQUENCE_COUNT = 3;
 
 	function resize(video) {
 		video.height = window.innerHeight;
@@ -22,7 +22,8 @@
 		false: []
 	};
 
-	function loadVideo(forward, sequence) {
+	function loadVideo(forward, sequence, start) {
+		start = start || 0;
 		var cacheResult = videoCache[forward][sequence];
 
 		if (cacheResult) {
@@ -55,7 +56,7 @@
 
 		seqEl.addEventListener('loadeddata', function () {
 			console.log('loadeddata');
-			seqEl.currentTime = 0.0;
+			seqEl.currentTime = start;
 		});
 
 		seqEl.addEventListener('seeked', function () {
@@ -86,16 +87,37 @@
 
 		var ended = false;
 
+		seqEl.blah = function () {
+			return ended;
+		}
+
 		seqEl.addEventListener('pause', function () {
-			ended = true;			
+			// if (!pleaseEnd) {
+				console.log('sequence ended', forward, sequence)
+				ended = true;
+				// pleaseEnd = false;
+			// } else {
+				// console.log('ignoring pause');
+			// }
 		});
 
-		scrollStart(function (down) {
+		// var pleaseEnd = false;
+
+
+		seqEl.scrollHandler = function (down) {
 			if (!ended) {
 				if (down === forward) {
+					console.log('double playback', forward, sequence);
 					seqEl.playbackRate *= 2;
+					return;
+				} else {
+					console.log('pausing', forward, sequence);
+					// pleaseEnd = true;
+					seqEl.pause();
+					// jumpTime = seqEl.duration - seqEl.currentTime;
 				}
-				return;
+			} else {
+				console.log('scrollstart and is sended', forward, sequence);
 			}
 
 			var diff = 0;
@@ -113,22 +135,34 @@
 
 			var nextIdx = sequence + diff;//.mod(SEQUENCE_COUNT);
 
-			console.log('switching from', forward, sequence, 'to', down, nextIdx);
+			// console.log('switching from', forward, sequence, 'to', down, nextIdx);
 
 			if (nextIdx >= 0 && nextIdx < SEQUENCE_COUNT) {
 				ended = false; // prevents double triggers, ended really means just ended
-				// console.log('switching from', forward, sequence, 'to', down, nextIdx);
+				console.log('switching from', forward, sequence, 'to', down, nextIdx);
 
-				var next = loadVideo(down, nextIdx);
+				// console.log('boo', seqEl.duration - seqEl.currentTime);
+
+				var next = loadVideo(down, nextIdx, seqEl.duration - seqEl.currentTime);
+				SequenceManager.active = next;
 				if (next.setupAndReadyToGo) {
-					next.currentTime = 0.0;
+					next.currentTime = seqEl.duration - seqEl.currentTime;
 					next.playbackRate = 1;
 				}
+			} else {
+				console.log('ignoring');
 			}
-		});
+		};
 
 		return seqEl;
 	}
+
+	var SequenceManager = {
+		active: null,
+		scrollHandler: function (down) {
+			SequenceManager.active.scrollHandler(down);
+		}
+	};
 
 	Number.prototype.mod = function(n) {
 		return ((this%n)+n)%n;
@@ -150,11 +184,15 @@
 				var currentDelta = Math.abs(e.deltaY);
 
 				// yay magic numbers
-				if ((now - last > GAP) ||
-					(now - lastStart > GAP && lastDelta !== null && currentDelta > lastDelta * 3)) {
+				if (currentDelta > 1 &&
+					((now - last > GAP) ||
+					(now - lastStart > GAP && lastDelta !== null && currentDelta > lastDelta * 3))) {
+
 					lastStart = now;
 
-				console.log(currentDelta / lastDelta);
+					// console.log('currentDelta', currentDelta);
+
+				// console.log(currentDelta / lastDelta);
 
 					scrollStart.callbacks.forEach(function (cb) {
 						cb(e.deltaY > 0);
@@ -169,12 +207,27 @@
 		scrollStart.callbacks.push(callback);
 	}
 
-
-	scrollStart(function (up) {
-		console.log('start!', up);
-	});
-
 	var vid = loadVideo(true, 0);
+
+	SequenceManager.active = vid;
+	scrollStart(SequenceManager.scrollHandler);
+
+
+	function test() {
+		for (var i = 0; i < SEQUENCE_COUNT; i++) {
+			var one = "not loaded";
+			if (videoCache[true][i]) {
+				one = videoCache[true][i].blah();
+			}
+
+			var two = " not loaded";
+			if (videoCache[false][i]) {
+				two = videoCache[false][i].blah();
+			}
+
+			console.log('sequence', i, one, two);
+		};
+	}
 
 </script>
 </html>
