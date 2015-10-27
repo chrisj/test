@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html style="background-color: red;">
+<html style="background-color: red; font-family: 'Roboto Condensed', 'Lucida Grande', sans-serif">
 <head>
 	<title></title>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body style="margin: 0; overflow: hidden; text-align: center;">
+	<span style="z-index: 1; position: absolute; bottom: 20%; left: 0; right: 0; margin: auto;
+	text-transform: uppercase;
+	font-size: 30px;
+	font-weight: 600;
+	letter-spacing: 2px;
+	color: rgb(112, 134, 152);
+	">it's a 3d puzzle game</span>
 </body>
 
 <script type="text/javascript">
@@ -15,6 +22,10 @@
 		var videoWidth = 4000 / 2260 * window.innerHeight;
 		video.style.left = `${-(videoWidth - window.innerWidth) / 2}px`;
 	}
+
+	window.onresize = function () {
+		resize(SequenceManager.active);
+	};
 
 	var videoCache = {
 		true: [],
