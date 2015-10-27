@@ -118,7 +118,7 @@
 				console.log('not ended', down, forward);
 				if (down === forward) {
 					console.log('double playback', forward, sequence);
-					seqEl.playbackRate *= 2;
+					seqEl.playbackRate = 2;
 					return;
 				} else {
 					console.log('pausing', forward, sequence);
