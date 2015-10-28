@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html style="background-color: rgb(14, 33, 42); font-family: 'Roboto Condensed', 'Lucida Grande', sans-serif;
+background: url('assets/animations/mobile/bg.jpg') no-repeat center center fixed;
+background-size: cover;
+">
+<head>
+	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:700|Vollkorn:400,700italic,400italic" rel="stylesheet" type="text/css">
+	<script type="text/javascript" src="http://hammerjs.github.io/dist/hammer.min.js"></script>
+	<title></title>
+</head>
+<body style="margin: 0; overflow: hidden; text-align: center;">
+	<span style="z-index: 1; position: absolute; bottom: 20%; left: 0; right: 0; margin: auto;
+	text-transform: uppercase;
+	font-size: 30px;
+	font-weight: 600;
+	letter-spacing: 2px;
+	color: rgb(112, 134, 152);
+	">it's a 3d puzzle game</span>
+<img id="img0" src="assets/animations/mobile/melt_0.png" style="
+height: 100%;
+left: 0;
+position: absolute;
+top: 0;
+touch-action: none;
+-webkit-user-select: none;
+-webkit-user-drag: none;
+-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+" />
+<!-- transition: top 1s;
+ -->
+<img id="img1" src="assets/animations/mobile/melt_1.png" style="
+height: 100%;
+left: 0;
+position: absolute;
+top: 0;
+opacity: 0;
+pointer-events:none;
+" />
+</body>
+<script type="text/javascript">
+	function scrollStart(callback) {
+		if (!scrollStart.initialized) {
+			scrollStart.initialized = true;
+			scrollStart.callbacks = [];
+
+			var GAP = 200;
+			var last = 0;
+			var lastDelta = null;
+			var lastStart = 0;
+
+			window.addEventListener('wheel', function (e) {
+				var now = performance.now();
+
+				var currentDelta = Math.abs(e.deltaY);
+
+				// console.log('currentDelta', currentDelta);
+
+				// yay magic numbers
+				if (currentDelta > 0 &&
+					((now - last > GAP) ||
+					(now - lastStart > GAP && lastDelta !== null && currentDelta > lastDelta * 3))) {
+
+					lastStart = now;
+
+					// console.log('currentDelta', currentDelta);
+
+				// console.log(currentDelta / lastDelta);
+
+					scrollStart.callbacks.forEach(function (cb) {
+						cb(e.deltaY > 0);
+					});
+				}
+
+				lastDelta = currentDelta;
+				last = now;
+			});
+		}
+
+		scrollStart.callbacks.push(callback);
+	}
+
+
+
+	// scrollStart(function () {
+	// 	console.log('scrollStart');
+	// 	document.getElementById('img0');
+	// 	img0.style.top = "-100%";
+
+	// 	document.getElementById('img1');
+	// 	img1.style.opacity = "100";
+	// });
+
+	var current = document.getElementById('img0');
+
+	var next = document.getElementById('img1');
+
+	// var height = 
+
+	var mc = new Hammer.Manager(current);
+	mc.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
+
+	mc.on('panstart panmove', function (evt) {
+		var nextPos = evt.deltaY;
+
+		current.style.transition = "";
+		next.style.transition = "";
+
+		if (evt.deltaY < -250) {
+			mc.remove('panstart panmove');
+			current.style.transition = "all 1s";
+			next.style.transition = "all 1s";
+			nextPos = -window.innerHeight;
+		}
+
+		current.style.top = nextPos + "px";
+
+		next.style.opacity = Math.min(1, Math.max(0, -(nextPos / 400)));
+	});
+
+	mc.on("hammer.input", function(ev) {
+		if (ev.isFinal) {
+			if (current.style.top !== -window.innerHeight + "px") {
+				next.style.transition = "all 0.3s";
+				next.style.opacity = 0;
+
+				current.style.transition = "all 0.3s";
+				current.style.top = 0 + "px";
+			}
+		}
+	});
+
+</script>
+</html>
