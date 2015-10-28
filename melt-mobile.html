@@ -96,10 +96,10 @@ pointer-events:none;
 
 	var next = document.getElementById('img1');
 
-	// var height = 
-
 	var mc = new Hammer.Manager(current);
 	mc.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
+
+	// mc.add(new Hammer.Swipe({ direction: Hammer.DIRECTION_VERTICAL })).recognizeWith(mc.get('pan'));
 
 	mc.on('panstart panmove', function (evt) {
 		var nextPos = evt.deltaY;
@@ -116,7 +116,7 @@ pointer-events:none;
 
 		current.style.top = nextPos + "px";
 
-		next.style.opacity = Math.min(1, Math.max(0, -(nextPos / 400)));
+		next.style.opacity = Math.min(1, Math.max(0, -(nextPos / 250)));
 	});
 
 	mc.on("hammer.input", function(ev) {
@@ -130,6 +130,14 @@ pointer-events:none;
 			}
 		}
 	});
+
+	// mc.on('swipe', function (ev) {
+	// 	console.log('swipe');
+	// 	mc.remove('panstart panmove');
+	// 	current.style.transition = "all 1s";
+	// 	next.style.transition = "all 1s";
+	// 	nextPos = -window.innerHeight;
+	// });
 
 </script>
 </html>
