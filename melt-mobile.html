@@ -104,80 +104,40 @@ background-size: cover; -->
 
 	>it's a 3d puzzle game</span>
 
+	<div id="whitePart" style="
+		width: 100%;
+		height: 0%;
+		background-color: white;
+		position: absolute;
+		bottom: 0px;
+
+		z-index: 1;
+
+		transition: all 1.5s;
+	"></div>
+<!-- probably need easing function for these two parts -->
+
+		<img id='bg' src="assets/animations/mobile/bg.jpg" style="
+			height: 100%;
+			-webkit-user-drag: none;
+			-khtml-user-drag: none;
+			-moz-user-drag: none;
+			-o-user-drag: none;
+			user-drag: none;
+
+			opacity: 0;
+
+			transition: all 1.5s; 
+
+			transition-timing-function: ease-in;
+		" />
+
+
 
 	<div id="slidesContainer"></div>
-
-
-	<div id="outer">
-	<section class="container">
-	  <div id="cube">
-	    <figure class="front side"></figure>
-	    <figure class="back side"></figure>
-	    <figure class="right side"></figure>
-	    <figure class="left side"></figure>
-	    <figure class="top"></figure>
-	    <figure class="bottom"></figure>
-	  </div>
-	</section>
-	</div>
-
 </body>
 <script type="text/javascript">
-
 	var SLIDE_COUNT = 10;
-
-	var transforms = [
-		"rotateX(-90deg)",
-		"rotateX(-71deg) rotateY(-3deg)",
-		"rotateX(-64deg) rotateY(-8deg)",
-		"rotateX(-56deg) rotateY(-33deg)",
-		"rotateX(-41deg) rotateY(-65deg)",
-		"rotateX(-36deg) rotateY(-74deg)",
-		"rotateX(-31deg) rotateY(-83deg)",
-		"rotateX(-27deg) rotateY(-99deg)",
-		"rotateX(-21deg) rotateY(-119deg)",
-		"rotateX(-18deg) rotateY(-134deg)"
-	];
-
-	var heights = [
-		100,
-		90,
-		80,
-		70,
-		60,
-		50,
-		40,
-		25,
-		14,
-		3
-	];
-
-	function setCubeHeight(percent) {
-		var sides = document.querySelectorAll("#cube .side");
-
-		[].forEach.call(sides, function (side) {
-			side.style.height = percent + "%";
-		});
-
-		var top = document.querySelector("#cube .top");
-
-		var CUBE_HEIGHT = 130;
-
-		var topPixels = CUBE_HEIGHT * (percent / 100) - CUBE_HEIGHT / 2;
-
-		console.log(topPixels);
-
-		top.style.transform = "rotateX(90deg) translateZ(" + topPixels + "px)";
-
-		console.log('sides', sides);
-	}
-
-	// setCubeHeight(75);
-
-	// rotateX( -90deg );
-	// rotateX( -71deg ) rotateY(-3deg)
-	// rotateX( -64deg ) rotateY(-10deg)
-	// rotateX( -56deg ) rotateY(-33deg)
 
 	var slidesContainer = document.getElementById('slidesContainer');
 
@@ -210,8 +170,38 @@ background-size: cover; -->
 			}
 
 			return document.getElementById('img' + (this.current + delta));
+		},
+		transitionToNextSlide: function () {
+			return new Promise(function (fulfill, reject) {
+				var current = SlideManager.currentSlide();
+				var next = SlideManager.neighborSlide(1);
+
+				if (next) {
+					current.style.opacity = 0;
+					next.style.opacity = 1;
+
+					SlideManager.current++;
+
+					setTimeout(fulfill, 600);
+				} else {
+					reject();
+				}
+			});
 		}
 	};
+
+
+	function recurse() {
+		SlideManager.transitionToNextSlide().then(recurse).catch(function () {
+			console.log('we are done');
+			var bg = document.getElementById('bg');
+			var whitePart = document.getElementById('whitePart');
+			bg.style.opacity = 0.5;
+			whitePart.style.height = "49%";
+		});
+	}
+
+	// SlideManager.transitionToNextSlide(SlideManager.transiitionToNextSlide)
 
 	var mc = new Hammer.Manager(document.body);
 	mc.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
@@ -228,7 +218,7 @@ background-size: cover; -->
 		}
 
 
-		console.log('current', SlideManager.current);
+		// console.log('current', SlideManager.current);
 
 		var current = SlideManager.currentSlide();
 
@@ -244,66 +234,81 @@ background-size: cover; -->
 
 		var t = Math.max(0, Math.min(1, Math.abs(evt.deltaY) / (window.innerHeight / 1.5)));
 
-		// var nextPos = evt.deltaY;
+		console.log(t);
 
-		current.style.transition = "";
+		current.style.transition = "all 0s";
 		next.style.transition = "";
 
-		// console.log(t);
+		var nextTop = evt.deltaY;
 
-		if (t > 0.38) {
+		if (t > 0.5) {
 			SlideManager.active = 1;
 			SlideManager.upCount = false;
 
+			current.style.transition = "all 0.8s";
+			next.style.transition = "all 0.8s";
+
+			nextTop = -window.innerHeight;
+
+			// recurse();
+
 			t = 1;
-			console.log('set');
-			document.getElementById('cube').style.transform = transforms[SlideManager.current + SlideManager.transitioningTo];
 
-			setCubeHeight(heights[SlideManager.current + SlideManager.transitioningTo]);
+			// var transitionToNextSlide = function () {
+			// 	current.removeEventListener("transitionend", transitionToNextSlide);
+			// 	console.log('done2', SlideManager.current);
 
-			var transitionToNextSlide = function () {
-				current.removeEventListener("transitionend", transitionToNextSlide);
-				console.log('done2', SlideManager.current);
+			// 	console.log('setting current to', SlideManager.current + negative ? 1 : -1);
+			// 	SlideManager.current += negative ? 1 : -1;
 
-				console.log('setting current to', SlideManager.current + negative ? 1 : -1);
-				SlideManager.current += negative ? 1 : -1;
+			// 	SlideManager.active = Math.max(0, SlideManager.active - 1);
+			// 	console.log('active reduced to', SlideManager.active);
 
-				SlideManager.active = Math.max(0, SlideManager.active - 1);
-				console.log('active reduced to', SlideManager.active);
-			};
+			// 	// if (SlideManager.active === 1) {
+			// 	// 	setInterval(
+			// 	// }
+			// };
 
-			current.addEventListener("transitionend", transitionToNextSlide);
+			// current.addEventListener("transitionend", transitionToNextSlide);
 		}
 
-		current.style.opacity = (1 - t);
+		current.style.top = nextTop + 'px';
 
+		// current.style.opacity = (1 - t);
 		next.style.opacity = t;
-	});
 
-	mc.on("hammer.input", function(ev) {
-		if (ev.isFinal) {
-			SlideManager.upCount = true;
-			// SlideManager.active = Math.max(0, SlideManager.active - 1);
-
-			console.log('active reduced to', SlideManager.active);
-
-			if (SlideManager.active > 0) {
-				return;
-			}
-
-
-			var current = SlideManager.currentSlide();
-			var next = SlideManager.neighborSlide();
-
-			if (current.donedone || next === null) {
-				return;
-			}
-
-			next.style.opacity = 0;
-
-			current.style.opacity = 1;
+		if (t > 0.5) {
+			setTimeout(function () {
+				recurse();
+			}, 200);
+			
 		}
 	});
+
+	// mc.on("hammer.input", function(ev) {
+	// 	if (ev.isFinal) {
+	// 		SlideManager.upCount = true;
+	// 		// SlideManager.active = Math.max(0, SlideManager.active - 1);
+
+	// 		console.log('active reduced to', SlideManager.active);
+
+	// 		if (SlideManager.active > 0) {
+	// 			return;
+	// 		}
+
+
+	// 		var current = SlideManager.currentSlide();
+	// 		var next = SlideManager.neighborSlide();
+
+	// 		if (current.donedone || next === null) {
+	// 			return;
+	// 		}
+
+	// 		next.style.opacity = 0;
+
+	// 		current.style.opacity = 1;
+	// 	}
+	// });
 
 	// mc.on('swipe', function (ev) {
 	// 	console.log('swipe');

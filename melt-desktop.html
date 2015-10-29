@@ -16,7 +16,7 @@
 
 <script type="text/javascript">
 
-	var SEQUENCE_COUNT = 3;
+	var SEQUENCE_COUNT = 5;
 
 	function resize(video) {
 		video.height = window.innerHeight;
@@ -45,7 +45,7 @@
 
 		var seqEl = document.createElement('video');
 		var src = document.createElement('source');
-		src.src = "./assets/animations/Melt_Sequence/small/melt_" + fString + "_" + sequence + ".mp4";
+		src.src = "./assets/animations/Melt_Sequence/small2/melt_" + fString + "_" + sequence + ".mp4";
 
 		seqEl.appendChild(src);
 
@@ -203,10 +203,6 @@
 					(now - lastStart > GAP && lastDelta !== null && currentDelta > lastDelta * 3))) {
 
 					lastStart = now;
-
-					// console.log('currentDelta', currentDelta);
-
-				// console.log(currentDelta / lastDelta);
 
 					scrollStart.callbacks.forEach(function (cb) {
 						cb(e.deltaY > 0);
