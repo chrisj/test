@@ -1,16 +1,86 @@
 <!DOCTYPE html>
 <html style="height: 100%; background-color: rgb(14, 33, 42); font-family: 'Roboto Condensed', 'Lucida Grande', sans-serif;
-background: url('assets/animations/mobile/bg.jpg') no-repeat center center fixed;
-background-size: cover;
+
 ">
+
+<!-- background: url('assets/animations/mobile/bg.jpg') no-repeat center center fixed;
+background-size: cover; -->
+
 <head>
 	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
 	<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:700|Vollkorn:400,700italic,400italic" rel="stylesheet" type="text/css">
 	<script type="text/javascript" src="http://hammerjs.github.io/dist/hammer.min.js"></script>
 	<title></title>
+
+	<style>
+		.slide {
+			height: 100%;
+			left: 0;
+			right: 0;
+			margin: auto;
+			position: absolute;
+			top: 0;
+			pointer-events:none;
+			transition: all 0.5s;
+		}
+
+.container {
+  width: 130px;
+  height: 130px;
+  position: relative;
+  perspective: 2000px;
+
+    /*top: 100px;*/
+  /*left: 100px;*/
+  left: 0;
+  right: 0;
+  margin: auto;
+  z-index: 999;
+  opacity: 0.7;
+  top: 56px;
+}
+
+#cube {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+
+  transition: all 0.5s;
+
+  transform: rotateX( -90deg );
+}
+
+#cube figure {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  bottom: 0;
+
+  transition: all 0.5s;
+
+  user-select: none;
+
+}
+
+/*#cube .side {
+	height: 75%;
+}*/
+
+#cube .front  { transform: rotateY(   0deg ) translateZ( 65px ); background-color: hsla(0,0%,40%,1); }
+#cube .back   { transform: rotateX( 180deg ) translateZ( 65px ); background-color: hsla(0,0%,67%,1); }
+#cube .right  { transform: rotateY(  90deg ) translateZ( 65px ); background-color: hsla(0,0%,47%,1); }
+#cube .left   { transform: rotateY( -90deg ) translateZ( 65px ); background-color: hsla(0,0%,40%,1); }
+#cube .top    { transform: rotateX(  90deg ) translateZ( 65px ); background-color: hsla(0,0%,78%,1); }
+#cube .bottom { transform: rotateX( -90deg ) translateZ( 65px ); background-color: hsla(0,0%,40%,1); }
+
+	</style>
 </head>
 <body style="height: 100%; margin: 0; overflow: hidden; text-align: center;">
-	<span style="z-index: 1; position: absolute; bottom: 20%; left: 0; right: 0; margin: auto;
+	<span style="
+	z-index: 100; position: absolute; bottom: 20%; left: 0; right: 0; margin: auto;
 	text-transform: uppercase;
 	font-size: 30px;
 	font-weight: 600;
@@ -33,136 +103,214 @@ background-size: cover;
 	onmousedown="return false;"
 
 	>it's a 3d puzzle game</span>
-<img id="img0" src="assets/animations/mobile/melt_0.png" style="
-height: 100%;
-left: 0;
-right: 0;
-margin: auto;
-position: absolute;
-top: 0;
-pointer-events:none;
-z-index: 10;
-" />
 
-<img id="img1" src="assets/animations/mobile/melt_1.png" style="
-height: 100%;
-left: 0;
-right: 0;
-margin: auto;
-position: absolute;
-top: 0;
-opacity: 0;
-pointer-events:none;
-z-index: 9;
-" />
-<!-- <div id="swipeArea" style="
-background-color: rgba(255, 255, 255, 0.2);
-height: 70%;
-width: 100%;
-">
-</div> -->
+
+	<div id="slidesContainer"></div>
+
+
+	<div id="outer">
+	<section class="container">
+	  <div id="cube">
+	    <figure class="front side"></figure>
+	    <figure class="back side"></figure>
+	    <figure class="right side"></figure>
+	    <figure class="left side"></figure>
+	    <figure class="top"></figure>
+	    <figure class="bottom"></figure>
+	  </div>
+	</section>
+	</div>
+
 </body>
 <script type="text/javascript">
-	function scrollStart(callback) {
-		if (!scrollStart.initialized) {
-			scrollStart.initialized = true;
-			scrollStart.callbacks = [];
 
-			var GAP = 200;
-			var last = 0;
-			var lastDelta = null;
-			var lastStart = 0;
+	var SLIDE_COUNT = 10;
 
-			window.addEventListener('wheel', function (e) {
-				var now = performance.now();
+	var transforms = [
+		"rotateX(-90deg)",
+		"rotateX(-71deg) rotateY(-3deg)",
+		"rotateX(-64deg) rotateY(-8deg)",
+		"rotateX(-56deg) rotateY(-33deg)",
+		"rotateX(-41deg) rotateY(-65deg)",
+		"rotateX(-36deg) rotateY(-74deg)",
+		"rotateX(-31deg) rotateY(-83deg)",
+		"rotateX(-27deg) rotateY(-99deg)",
+		"rotateX(-21deg) rotateY(-119deg)",
+		"rotateX(-18deg) rotateY(-134deg)"
+	];
 
-				var currentDelta = Math.abs(e.deltaY);
+	var heights = [
+		100,
+		90,
+		80,
+		70,
+		60,
+		50,
+		40,
+		25,
+		14,
+		3
+	];
 
-				// console.log('currentDelta', currentDelta);
+	function setCubeHeight(percent) {
+		var sides = document.querySelectorAll("#cube .side");
 
-				// yay magic numbers
-				if (currentDelta > 0 &&
-					((now - last > GAP) ||
-					(now - lastStart > GAP && lastDelta !== null && currentDelta > lastDelta * 3))) {
+		[].forEach.call(sides, function (side) {
+			side.style.height = percent + "%";
+		});
 
-					lastStart = now;
+		var top = document.querySelector("#cube .top");
 
-					// console.log('currentDelta', currentDelta);
+		var CUBE_HEIGHT = 130;
 
-				// console.log(currentDelta / lastDelta);
+		var topPixels = CUBE_HEIGHT * (percent / 100) - CUBE_HEIGHT / 2;
 
-					scrollStart.callbacks.forEach(function (cb) {
-						cb(e.deltaY > 0);
-					});
-				}
+		console.log(topPixels);
 
-				lastDelta = currentDelta;
-				last = now;
-			});
-		}
+		top.style.transform = "rotateX(90deg) translateZ(" + topPixels + "px)";
 
-		scrollStart.callbacks.push(callback);
+		console.log('sides', sides);
 	}
 
+	// setCubeHeight(75);
+
+	// rotateX( -90deg );
+	// rotateX( -71deg ) rotateY(-3deg)
+	// rotateX( -64deg ) rotateY(-10deg)
+	// rotateX( -56deg ) rotateY(-33deg)
+
+	var slidesContainer = document.getElementById('slidesContainer');
+
+	for (var i = 0; i < SLIDE_COUNT; i++) {
+
+		var img = document.createElement('img');
+		img.src = 'assets/animations/mobile/melt_' + i + '.png';
+
+		img.id = 'img' + i;
+
+		img.className = 'slide';
+		img.style['z-index'] = SLIDE_COUNT - i;
+		img.style.opacity = i > 0 ? 0 : 1;
+
+		slidesContainer.appendChild(img);
+	};
 
 
-	// scrollStart(function () {
-	// 	console.log('scrollStart');
-	// 	document.getElementById('img0');
-	// 	img0.style.top = "-100%";
+	var SlideManager = {
+		active: 0,
+		current: 0,
+		upCount: true,
+		transitioningTo: undefined,
+		currentSlide: function () {
+			return document.getElementById('img' + this.current);
+		},
+		neighborSlide: function (delta) {
+			if (delta === undefined) {
+				delta = this.transitioningTo;
+			}
 
-	// 	document.getElementById('img1');
-	// 	img1.style.opacity = "100";
-	// });
-
-	var current = document.getElementById('img0');
-
-	var next = document.getElementById('img1');
-
-	// var swipeArea = document.getElementById('swipeArea');
+			return document.getElementById('img' + (this.current + delta));
+		}
+	};
 
 	var mc = new Hammer.Manager(document.body);
 	mc.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
 
-	mc.add(new Hammer.Swipe({ direction: Hammer.DIRECTION_VERTICAL })).recognizeWith(mc.get('pan'));
+	mc.add(new Hammer.Swipe({ direction: Hammer.DIRECTION_VERTICAL })).recognizeWith(mc.get('pan')); // todo, what does this do?
 
 	mc.on('panstart panmove', function (evt) {
-		var nextPos = evt.deltaY;
+		if (SlideManager.active !== 0) {
+			return;
+		}
+
+		if (!SlideManager.upCount) {
+			return;
+		}
+
+
+		console.log('current', SlideManager.current);
+
+		var current = SlideManager.currentSlide();
+
+		var negative = evt.deltaY < 0;
+
+		SlideManager.transitioningTo = negative ? 1 : -1;
+
+		var next = SlideManager.neighborSlide(negative ? 1 : -1);
+
+		if (current.donedone || next === null) {
+			return;
+		}
+
+		var t = Math.max(0, Math.min(1, Math.abs(evt.deltaY) / (window.innerHeight / 1.5)));
+
+		// var nextPos = evt.deltaY;
 
 		current.style.transition = "";
 		next.style.transition = "";
 
-		if (evt.deltaY < -180) {
-			mc.remove('panstart panmove');
-			current.style.transition = "all 1s";
-			next.style.transition = "all 1s";
-			nextPos = -window.innerHeight;
+		// console.log(t);
+
+		if (t > 0.38) {
+			SlideManager.active = 1;
+			SlideManager.upCount = false;
+
+			t = 1;
+			console.log('set');
+			document.getElementById('cube').style.transform = transforms[SlideManager.current + SlideManager.transitioningTo];
+
+			setCubeHeight(heights[SlideManager.current + SlideManager.transitioningTo]);
+
+			var transitionToNextSlide = function () {
+				current.removeEventListener("transitionend", transitionToNextSlide);
+				console.log('done2', SlideManager.current);
+
+				console.log('setting current to', SlideManager.current + negative ? 1 : -1);
+				SlideManager.current += negative ? 1 : -1;
+
+				SlideManager.active = Math.max(0, SlideManager.active - 1);
+				console.log('active reduced to', SlideManager.active);
+			};
+
+			current.addEventListener("transitionend", transitionToNextSlide);
 		}
 
-		current.style.top = nextPos + "px";
+		current.style.opacity = (1 - t);
 
-		next.style.opacity = Math.min(1, Math.max(0, -(nextPos / 150)));
+		next.style.opacity = t;
 	});
 
 	mc.on("hammer.input", function(ev) {
 		if (ev.isFinal) {
-			if (current.style.top !== -window.innerHeight + "px") {
-				next.style.transition = "all 0.3s";
-				next.style.opacity = 0;
+			SlideManager.upCount = true;
+			// SlideManager.active = Math.max(0, SlideManager.active - 1);
 
-				current.style.transition = "all 0.3s";
-				current.style.top = 0 + "px";
+			console.log('active reduced to', SlideManager.active);
+
+			if (SlideManager.active > 0) {
+				return;
 			}
+
+
+			var current = SlideManager.currentSlide();
+			var next = SlideManager.neighborSlide();
+
+			if (current.donedone || next === null) {
+				return;
+			}
+
+			next.style.opacity = 0;
+
+			current.style.opacity = 1;
 		}
 	});
 
-	mc.on('swipe', function (ev) {
-		console.log('swipe');
-		mc.remove('panstart panmove');
-		current.style.transition = "all 1s";
-		next.style.transition = "all 0.3s";
-		nextPos = -window.innerHeight;
-	});
+	// mc.on('swipe', function (ev) {
+	// 	console.log('swipe');
+	// 	current.style.transition = "all 1s";
+	// 	next.style.transition = "all 0.3s";
+	// 	nextPos = -window.innerHeight;
+	// });
 
 </script>
 </html>
