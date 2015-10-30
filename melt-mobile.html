@@ -193,7 +193,7 @@ background-size: cover; -->
 
 					SlideManager.current++;
 
-					setTimeout(fulfill, 600);
+					fulfill(SlideManager.neighborSlide(1) === null);
 				} else {
 					reject();
 				}
@@ -203,13 +203,16 @@ background-size: cover; -->
 
 
 	function recurse() {
-		SlideManager.transitionToNextSlide().then(recurse).catch(function () {
-			console.log('we are done');
-			var bg = document.getElementById('bg');
-			bg.style.opacity = 0.5;
-			var whitePart = document.getElementById('whitePart');
-			whitePart.style.height = "49%";
-			whitePart.style.opacity = 1;
+		SlideManager.transitionToNextSlide().then(function (last) {
+			if (last) {
+				var bg = document.getElementById('bg');
+				bg.style.opacity = 0.5;
+				var whitePart = document.getElementById('whitePart');
+				whitePart.style.height = "49%";
+				whitePart.style.opacity = 1;
+			} else {
+				setTimeout(recurse, 600);
+			}
 		});
 	}
 
